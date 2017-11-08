@@ -1,0 +1,23 @@
+- name: create minio.io data volume
+  file: state=directory dest="{{ ext_minio_io_data_volume }}"
+
+- name: create minio.io config volume
+  file: state=directory dest="{{ ext_minio_io_config_volume }}"
+
+- name: install docker-py
+  pip: name=docker-py
+
+- name: start a Minio.io container
+  docker_container:
+    image: minio/minio:latest
+    state: started
+    read_only: yes
+    hostname: "{{ ansible_hostname }}-minio-io-{{ ext_minio_io_port }}"
+    command: "server /data"
+    ports:
+      - "{{ ext_minio_io_port }}:9000"
+    volumes:
+      - "{{ ext_minio_io_data_volume }}:/data"
+      - "{{ ext_minio_io_config_volume }}:/root/.minio"
+    name: "minio-io-{{ ext_minio_io_port }}"
+    restart_policy: always
